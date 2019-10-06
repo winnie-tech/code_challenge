@@ -1,0 +1,20 @@
+Design Explanation:
+   [Users] request and query sent to [Edge Server Group] -> a Spring Microservice Program on [Edge Server Group] produces data in real-time to [Kafka Brokers], and in the meantime send the raw file to [Hadoop Cluster] -> [Batch Server Group] consume and process real-time data from [Kafka Brokers] by Spark Streaming Job and deliver the result to [Users] near real-time, but in case there is something wrong with the current processing logic, the [Batch Server Group] will use a Spring Microservice to process the raw data file stored in [Hadoop Cluster] instead and deliver the result to [Users].
+
+For the given system requirements:
+1. handle large write volume: Billions write events per day.
+     -> By using Hadoop cluster, we can store big data with trustability and in low price.
+
+2. handle large read/query volume: Millions merchants want to get insight about their business. Read/Query patterns are time-series related metrics.
+     -> By using docker, it’s easy to scale out (because of easy deployment) if more resources need to be added to handle large amount of requests from customers.
+     -> By using spark streaming, we are able to process real-time data with time-series related metrics.
+
+3. provide metrics to customers with at most one hour delay.
+     -> By using Kafka, we are able to transfer data from producer side to consumer side in near real-time (depends on data amount), it can totally meet the SLA (1h).
+
+4. run with minimum downtime.
+     -> By using clustered infrastructure, even if one or two of the nodes encounters temporary system down, the system still stay alive, we can just easily deploy and add a new node to the cluster and take time to fix the problemed node.
+
+5. have the ability to reprocess historical data in case of bugs in the processing logic.
+     -> By keeping the raw data file in Hadoop system other than produce and process real-time data, we can use the raw data to reprocess later if there is something wrong with the current system.
+
